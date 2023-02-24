@@ -1,9 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.Font;
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.lang.NumberFormatException;
 
 
 public class Spankbank {
@@ -24,6 +23,7 @@ public class Spankbank {
 class Page {
   JPanel panel;
   JFrame frame;
+  Account account;
 }
 
 class LoginPage extends Page {
@@ -47,7 +47,6 @@ class LoginPage extends Page {
     panel = new JPanel(new GridLayout(0, 2));
     panel.setBorder(BorderFactory.createEmptyBorder(250, 350, 300, 350));
     Factory f = new Factory();
-    FileHound filehound = new FileHound();
     Font normal_font = new Font("Arial", Font.PLAIN, 18);
     Font title_font = new Font("Arial", Font.BOLD, 24);
     
@@ -74,13 +73,14 @@ class LoginPage extends Page {
         char[] passwordc = password_field.getPassword();
         String password = new String(passwordc);
         Account account = new Account(username, password);
+        account.generateAccountFile();
   
         // clear text fields, remove components, then create mainpage
         username_field.setText("");
         password_field.setText("");
         panel.removeAll();
-        MainPage mainpage = new MainPage(frame);
-        mainpage.construct(mainpage);
+        MainPage mainpage = new MainPage(frame, account);
+        mainpage.construct();
       }
     }));
 
@@ -96,6 +96,8 @@ class LoginPage extends Page {
       char[] passwordc = password_field.getPassword();
       String password = new String(passwordc);
 
+      Account account = new Account(username, password);
+
       username_field.setText("");
       password_field.setText("");
       
@@ -103,8 +105,8 @@ class LoginPage extends Page {
 
       if (password.equals(accounts_hash.get(username))) {
         panel.removeAll();
-        MainPage mainpage = new MainPage(frame);
-        mainpage.construct(mainpage);
+        MainPage mainpage = new MainPage(frame, account);
+        mainpage.construct();
       } else {
         ack.setText("Bad Credentials");
         panel.repaint();
@@ -125,19 +127,143 @@ class LoginPage extends Page {
 }
 
 class MainPage extends Page {
-  public MainPage(JFrame mainframe) {
+  public MainPage(JFrame mainframe, Account accounti) {
     frame = mainframe;
+    account = accounti;
     panel = new JPanel(new GridLayout(0, 2));
     frame.add(panel, BorderLayout.CENTER); 
     Factory f = new Factory();
     Font normal_font = new Font("Arial", Font.PLAIN, 18);
     Font title_font = new Font("Arial", Font.BOLD, 24);
     panel.setBorder(BorderFactory.createEmptyBorder(250, 350, 300, 350));
-    panel.add(f.genLabel("Welcome", title_font));
+    panel.add(f.genLabel("Welcome, ", title_font));
+    panel.add(f.genLabel(account.username, title_font));
+    panel.add(f.genLabel("Balance:  ", normal_font));
+    panel.add(f.genLabel(Float.toString(account.balance), normal_font));
+    panel.add(f.genButton("Deposit", new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        panel.removeAll();
+        DepositPage depositpage = new DepositPage(frame, account);
+        depositpage.construct();
+      }
+    }));
+    panel.add(f.genButton("Withdraw", new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        panel.removeAll();
+        WithdrawPage page = new WithdrawPage(frame, account);
+        page.construct();
+      }
+    }));
+    panel.add(f.genLabel("", normal_font));
+    panel.add(f.genLabel("", normal_font));
     panel.setVisible(false);
   }
 
-  public void construct(MainPage mainpage) {
+  public void construct() {
+    panel.setVisible(true);
+  }
+}
+
+class DepositPage extends Page {
+  public DepositPage(JFrame mainframe, Account accounti) {
+    frame = mainframe;
+    account = accounti;
+    panel = new JPanel(new GridLayout(0, 2));
+    frame.add(panel, BorderLayout.CENTER); 
+    Factory f = new Factory();
+    Font normal_font = new Font("Arial", Font.PLAIN, 18);
+    Font title_font = new Font("Arial", Font.BOLD, 24);
+    panel.setBorder(BorderFactory.createEmptyBorder(250, 350, 300, 350));
+    panel.setVisible(false); 
+    panel.add(f.genLabel("Deposit", title_font));
+    panel.add(f.genLabel("", normal_font));
+    panel.add(f.genLabel("Enter amount:            $", normal_font));
+    JTextField textfield = f.genTfield(0);
+    panel.add(textfield);
+    JLabel pleasenter = f.genLabel("", normal_font);
+    panel.add(f.genButton("Submit", new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent ee) {
+          try {
+            float amount = Float.parseFloat(textfield.getText()); 
+            System.out.println(Float.toString(amount));
+            pleasenter.setText("");
+            textfield.setText("");
+        } catch (NumberFormatException e) {
+            textfield.setText("");
+            pleasenter.setText("Please enter a number");
+            panel.repaint();
+            panel.revalidate();
+        }
+        }
+    }));
+    panel.add(f.genButton("Back", new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        panel.removeAll();
+        MainPage mainpage = new MainPage(mainframe, accounti);
+        mainpage.construct();
+      }
+    }));
+    panel.add(pleasenter);
+    panel.add(f.genLabel("", normal_font));
+    panel.add(f.genLabel("", normal_font));
+  }
+
+  public void construct() {
+    panel.setVisible(true);
+  }
+}
+
+class WithdrawPage extends Page {
+  public WithdrawPage(JFrame mainframe, Account accounti) {
+    frame = mainframe;
+    account = accounti;
+    panel = new JPanel(new GridLayout(0, 2));
+    frame.add(panel, BorderLayout.CENTER); 
+    Factory f = new Factory();
+    Font normal_font = new Font("Arial", Font.PLAIN, 18);
+    Font title_font = new Font("Arial", Font.BOLD, 24);
+    panel.setBorder(BorderFactory.createEmptyBorder(250, 350, 300, 350));
+    panel.setVisible(false); 
+    panel.add(f.genLabel("Withdraw", title_font));
+    panel.add(f.genLabel("", normal_font));
+    panel.add(f.genLabel("Enter amount:            $", normal_font));
+    JTextField textfield = f.genTfield(0);
+    panel.add(textfield);
+    JLabel pleasenter = f.genLabel("", normal_font);
+    panel.add(f.genButton("Submit", new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent ee) {
+          try {
+            float amount = Float.parseFloat(textfield.getText()); 
+            System.out.println(Float.toString(amount));
+            pleasenter.setText("");
+            textfield.setText("");
+        } catch (NumberFormatException e) {
+            textfield.setText("");
+            pleasenter.setText("Please enter a number");
+            panel.repaint();
+            panel.revalidate();
+        }
+        }
+    }));
+    panel.add(f.genButton("Back", new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        panel.removeAll();
+        MainPage mainpage = new MainPage(mainframe, accounti);
+        mainpage.construct();
+      }
+    }));
+    panel.add(pleasenter);
+    panel.add(f.genLabel("", normal_font));
+    panel.add(f.genLabel("", normal_font));
+  }
+
+  public void construct() {
     panel.setVisible(true);
   }
 }
@@ -164,6 +290,12 @@ class Factory {
     JPasswordField field = new JPasswordField(null, columns);
     return field;
   }
+
+  public JTextArea genTarea(String text, int columns, int rows, Font font) {
+    JTextArea area = new JTextArea(text, rows, columns);
+    area.setFont(font);
+    return area;
+  }
 }
 
 class Account {
@@ -181,9 +313,12 @@ class Account {
     username = usernamei;
     password = passwordi;
     location = username + ".txt";
+
+  }
+
+  public void generateAccountFile() {
     FileHound f = new FileHound();
     f.fileWrite(username + "," + password + "," + balance, location);
     f.fileAppend(username + ",", "accounts.txt");
-
   }
 }
