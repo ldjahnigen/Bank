@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.lang.NumberFormatException;
 
@@ -70,6 +69,7 @@ class LoginPage extends Page {
     JPasswordField password_field = f.genPfield(10);
     panel.add(password_field);
 
+    JLabel ack = f.genLabel("", normal_font);
     panel.add(f.genButton("Create Account", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -78,7 +78,7 @@ class LoginPage extends Page {
         char[] passwordc = password_field.getPassword();
         String password = new String(passwordc);
         if (username.isBlank() || password.isBlank()) {
-          System.out.println("dumbass");
+          ack.setText("Bad Credentials");
         } else {
           Account account = new Account(username, password);
           account.generateAccountFile();
@@ -95,18 +95,22 @@ class LoginPage extends Page {
     }));
 
     JButton loginbutton = f.genButton("Log in", null);
-    JLabel ack = f.genLabel("", normal_font);
     panel.add(loginbutton); 
     panel.add(ack);
 
     ActionListener listener = new ActionListener() {
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent ee) {
       String username = username_field.getText(); 
       char[] passwordc = password_field.getPassword();
       String password = new String(passwordc);
+     
+      if (username.isBlank() || password.isBlank()) {
+          ack.setText("Bad Credentials");
+      } else {
 
       Account account = new Account(username, password);
+      account.loadBalance();
 
       username_field.setText("");
       password_field.setText("");
@@ -119,9 +123,8 @@ class LoginPage extends Page {
         mainpage.construct();
       } else {
         ack.setText("Bad Credentials");
-        panel.repaint();
-        panel.revalidate();
       }
+    }
     }
   };
   loginbutton.addActionListener(listener);
