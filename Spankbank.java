@@ -36,7 +36,11 @@ class LoginPage extends Page {
     for (String s : accounts_list) {
       String account_file = filehound.fileRead(s + ".txt");
       String[] account_files = account_file.split(",");
-      accounts_hash.put(account_files[0], account_files[1]);
+      try {
+        accounts_hash.put(account_files[0], account_files[1]);
+      } catch (ArrayIndexOutOfBoundsException e) {
+        System.out.println("dumbass"); 
+      }
     }
 
     return accounts_hash;
@@ -73,15 +77,20 @@ class LoginPage extends Page {
         String username = username_field.getText(); 
         char[] passwordc = password_field.getPassword();
         String password = new String(passwordc);
-        Account account = new Account(username, password);
-        account.generateAccountFile();
-  
-        // clear text fields, remove components, then create mainpage
-        username_field.setText("");
-        password_field.setText("");
-        panel.removeAll();
-        MainPage mainpage = new MainPage(frame, account);
-        mainpage.construct();
+        if (username.isBlank() || password.isBlank()) {
+          System.out.println("dumbass");
+        } else {
+          Account account = new Account(username, password);
+          account.generateAccountFile();
+          account.loadBalance();
+
+          // clear text fields, remove components, then create mainpage
+          username_field.setText("");
+          password_field.setText("");
+          panel.removeAll();
+          MainPage mainpage = new MainPage(frame, account);
+          mainpage.construct();
+        }
       }
     }));
 
@@ -318,6 +327,9 @@ class Account {
     username = usernamei;
     password = passwordi;
     location = username + ".txt";
+  }
+
+  public void loadBalance() {
     FileHound h = new FileHound();
     String file = h.fileRead(location);
     String[] file_split = file.split(",");
