@@ -210,9 +210,9 @@ class DepositPage extends Page {
         mainpage.construct();
       }
     }));
-    panel.add(pleasenter);
-    panel.add(f.genLabel("", normal_font));
     panel.add(curr_bal);
+    panel.add(f.genLabel("", normal_font));
+    panel.add(pleasenter);
   }
 
   public void construct() {
@@ -263,9 +263,9 @@ class WithdrawPage extends Page {
         mainpage.construct();
       }
     }));
-    panel.add(pleasenter);
-    panel.add(f.genLabel("", normal_font));
     panel.add(curr_bal);
+    panel.add(f.genLabel("", normal_font));
+    panel.add(pleasenter);
   }
 
   public void construct() {
