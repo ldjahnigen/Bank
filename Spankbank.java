@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.lang.NumberFormatException;
 
@@ -139,7 +140,7 @@ class MainPage extends Page {
     panel.add(f.genLabel("Welcome, ", title_font));
     panel.add(f.genLabel(account.username, title_font));
     panel.add(f.genLabel("Balance:  ", normal_font));
-    panel.add(f.genLabel(Float.toString(account.balance), normal_font));
+    panel.add(f.genLabel("$" + Float.toString(account.balance), normal_font));
     panel.add(f.genButton("Deposit", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -183,13 +184,15 @@ class DepositPage extends Page {
     JTextField textfield = f.genTfield(0);
     panel.add(textfield);
     JLabel pleasenter = f.genLabel("", normal_font);
+    JLabel curr_bal = f.genLabel("Balance: $"+ Float.toString(account.balance), normal_font);
     panel.add(f.genButton("Submit", new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent ee) {
           try {
             float amount = Float.parseFloat(textfield.getText()); 
-            System.out.println(Float.toString(amount));
-            pleasenter.setText("");
+            pleasenter.setText("$" + Float.toString(amount) + " deposited");
+            account.updateBalance(amount);
+            curr_bal.setText("Balance: $"+ Float.toString(account.balance));
             textfield.setText("");
         } catch (NumberFormatException e) {
             textfield.setText("");
@@ -209,7 +212,7 @@ class DepositPage extends Page {
     }));
     panel.add(pleasenter);
     panel.add(f.genLabel("", normal_font));
-    panel.add(f.genLabel("", normal_font));
+    panel.add(curr_bal);
   }
 
   public void construct() {
@@ -234,13 +237,15 @@ class WithdrawPage extends Page {
     JTextField textfield = f.genTfield(0);
     panel.add(textfield);
     JLabel pleasenter = f.genLabel("", normal_font);
+    JLabel curr_bal = f.genLabel("Balance: $" + Float.toString(account.balance), normal_font);
     panel.add(f.genButton("Submit", new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent ee) {
           try {
             float amount = Float.parseFloat(textfield.getText()); 
-            System.out.println(Float.toString(amount));
-            pleasenter.setText("");
+            pleasenter.setText("$" + Float.toString(amount) + " withdrawn");
+            account.updateBalance(-amount);
+            curr_bal.setText("Balance: $"+ Float.toString(account.balance));
             textfield.setText("");
         } catch (NumberFormatException e) {
             textfield.setText("");
@@ -260,7 +265,7 @@ class WithdrawPage extends Page {
     }));
     panel.add(pleasenter);
     panel.add(f.genLabel("", normal_font));
-    panel.add(f.genLabel("", normal_font));
+    panel.add(curr_bal);
   }
 
   public void construct() {
@@ -301,7 +306,7 @@ class Factory {
 class Account {
   String username;
   String password;
-  float balance = (float) 0.0;
+  float balance;
   String location;
 
   @Override
@@ -313,12 +318,21 @@ class Account {
     username = usernamei;
     password = passwordi;
     location = username + ".txt";
-
+    FileHound h = new FileHound();
+    String file = h.fileRead(location);
+    String[] file_split = file.split(",");
+    balance = Float.parseFloat(file_split[2]);
   }
 
   public void generateAccountFile() {
     FileHound f = new FileHound();
     f.fileWrite(username + "," + password + "," + balance, location);
     f.fileAppend(username + ",", "accounts.txt");
+  }
+
+  public void updateBalance(float amount) {
+    FileHound h = new FileHound();
+    balance += amount;
+    h.fileWrite(username + "," + password + "," + balance, location);
   }
 }
