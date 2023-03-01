@@ -183,7 +183,6 @@ class MainPage extends Page {
       }
     }));
     panel.add(f.genLabel("", normal_font));
-    panel.add(f.genLabel("", normal_font));
     panel.setVisible(false);
   }
 
@@ -327,6 +326,7 @@ class Account {
   String password;
   float balance;
   String location;
+  String history_location;
 
   @Override
   public String toString() {
