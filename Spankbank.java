@@ -24,6 +24,9 @@ class Page {
   JPanel panel;
   JFrame frame;
   Account account;
+  Factory f = new Factory();
+  Font normal_font = new Font("Arial", Font.PLAIN, 18);
+  Font title_font = new Font("Arial", Font.BOLD, 24); 
 }
 
 class LoginPage extends Page {
@@ -50,9 +53,6 @@ class LoginPage extends Page {
     frame = mainframe;
     panel = new JPanel(new GridLayout(0, 2));
     panel.setBorder(BorderFactory.createEmptyBorder(250, 350, 300, 350));
-    Factory f = new Factory();
-    Font normal_font = new Font("Arial", Font.PLAIN, 18);
-    Font title_font = new Font("Arial", Font.BOLD, 24);
     
     // start with panel invisible
     panel.setVisible(false);
@@ -72,7 +72,7 @@ class LoginPage extends Page {
     JLabel ack = f.genLabel("", normal_font);
     panel.add(f.genButton("Create Account", new ActionListener() {
       @Override
-      public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent ee) {
         // create account
         String username = username_field.getText(); 
         char[] passwordc = password_field.getPassword();
@@ -82,7 +82,16 @@ class LoginPage extends Page {
         } else {
           Account account = new Account(username, password);
           account.generateAccountFile();
-          account.loadBalance();
+
+          FileHound h = new FileHound();
+          String file = h.fileRead(account.location);
+          String[] file_split = file.split(",");
+          try {
+            account.balance = Float.parseFloat(file_split[2]);
+          } catch (ArrayIndexOutOfBoundsException e) {
+            ack.setText("Bad Credentials");
+          }
+
 
           // clear text fields, remove components, then create mainpage
           username_field.setText("");
@@ -110,7 +119,14 @@ class LoginPage extends Page {
       } else {
 
       Account account = new Account(username, password);
-      account.loadBalance();
+      FileHound h = new FileHound();
+      String file = h.fileRead(account.location);
+      String[] file_split = file.split(",");
+      try {
+        account.balance = Float.parseFloat(file_split[2]);
+      } catch (ArrayIndexOutOfBoundsException e) {
+        ack.setText("Bad Credentials");
+      }
 
       username_field.setText("");
       password_field.setText("");
@@ -123,8 +139,8 @@ class LoginPage extends Page {
         mainpage.construct();
       } else {
         ack.setText("Bad Credentials");
-      }
-    }
+        }
+      }     
     }
   };
   loginbutton.addActionListener(listener);
@@ -145,9 +161,6 @@ class MainPage extends Page {
     account = accounti;
     panel = new JPanel(new GridLayout(0, 2));
     frame.add(panel, BorderLayout.CENTER); 
-    Factory f = new Factory();
-    Font normal_font = new Font("Arial", Font.PLAIN, 18);
-    Font title_font = new Font("Arial", Font.BOLD, 24);
     panel.setBorder(BorderFactory.createEmptyBorder(250, 350, 300, 350));
     panel.add(f.genLabel("Welcome, ", title_font));
     panel.add(f.genLabel(account.username, title_font));
@@ -185,9 +198,6 @@ class DepositPage extends Page {
     account = accounti;
     panel = new JPanel(new GridLayout(0, 2));
     frame.add(panel, BorderLayout.CENTER); 
-    Factory f = new Factory();
-    Font normal_font = new Font("Arial", Font.PLAIN, 18);
-    Font title_font = new Font("Arial", Font.BOLD, 24);
     panel.setBorder(BorderFactory.createEmptyBorder(250, 350, 300, 350));
     panel.setVisible(false); 
     panel.add(f.genLabel("Deposit", title_font));
@@ -238,9 +248,6 @@ class WithdrawPage extends Page {
     account = accounti;
     panel = new JPanel(new GridLayout(0, 2));
     frame.add(panel, BorderLayout.CENTER); 
-    Factory f = new Factory();
-    Font normal_font = new Font("Arial", Font.PLAIN, 18);
-    Font title_font = new Font("Arial", Font.BOLD, 24);
     panel.setBorder(BorderFactory.createEmptyBorder(250, 350, 300, 350));
     panel.setVisible(false); 
     panel.add(f.genLabel("Withdraw", title_font));
@@ -330,13 +337,6 @@ class Account {
     username = usernamei;
     password = passwordi;
     location = username + ".txt";
-  }
-
-  public void loadBalance() {
-    FileHound h = new FileHound();
-    String file = h.fileRead(location);
-    String[] file_split = file.split(",");
-    balance = Float.parseFloat(file_split[2]);
   }
 
   public void generateAccountFile() {
